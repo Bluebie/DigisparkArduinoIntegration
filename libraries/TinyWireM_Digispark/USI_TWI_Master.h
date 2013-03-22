@@ -2,7 +2,7 @@
 *
 *
 * File              USI_TWI_Master.h compiled with gcc
-* Date              Friday, 10/31/08		Boo!
+* Date              Friday, 10/31/08    Boo!
 * Updated by        jkl
 *
 *
@@ -12,26 +12,26 @@
 * AppNote           : AVR310 - Using the USI module as a TWI Master
 *
 * This is modified to just do I2C communication on ATtiny2313 running at 
-*	1MHz. Fast mode is probably possible, but would need a faster clock
-*	and has not been tested.
+* 1MHz. Fast mode is probably possible, but would need a faster clock
+* and has not been tested.
 *
-*	12/15/08	Added declaration of USI_TWI_Start_Memory_Read	-jkl
+* 12/15/08  Added declaration of USI_TWI_Start_Memory_Read  -jkl
 ****************************************************************************/
     
 //********** Defines **********//
 
 // Defines controlling timing limits - SCL <= 100KHz.
 
-#define SYS_CLK   ((double) F_CPU / 1000)  // [kHz]	Default for ATtiny2313
+#define SYS_CLK   ((double) F_CPU / 1000)  // [kHz] Default for ATtiny2313
 
 // For use with _delay_us()
-#define T2_TWI    5 		// >4,7us
-#define T4_TWI    4 		// >4,0us
+#define T2_TWI    5     // >4,7us
+#define T4_TWI    4     // >4,0us
 
 // Defines error code generating
 //#define PARAM_VERIFICATION
 //#define NOISE_TESTING
-#define SIGNAL_VERIFY		// This should probably be on always.
+#define SIGNAL_VERIFY   // This should probably be on always.
 
 /****************************************************************************
   Bit and byte definitions
@@ -41,7 +41,7 @@
 #define TWI_NACK_BIT  0       // Bit position for (N)ACK bit.
 
 // Note these have been renumbered from the Atmel Apps Note. Most likely errors are now
-//		lowest numbers so they're easily recognized as LED flashes.
+//    lowest numbers so they're easily recognized as LED flashes.
 #define USI_TWI_NO_DATA             0x08  // Transmission buffer is empty
 #define USI_TWI_DATA_OUT_OF_BOUND   0x09  // Transmission buffer is outside SRAM space
 #define USI_TWI_UE_START_CON        0x07  // Unexpected Start Condition
@@ -51,7 +51,7 @@
 #define USI_TWI_NO_ACK_ON_ADDRESS   0x01  // The slave did not acknowledge  the address
 #define USI_TWI_MISSING_START_CON   0x03  // Generated Start Condition not detected on bus
 #define USI_TWI_MISSING_STOP_CON    0x04  // Generated Stop Condition not detected on bus
-#define USI_TWI_BAD_MEM_READ	    0x0A  // Error during external memory read
+#define USI_TWI_BAD_MEM_READ      0x0A  // Error during external memory read
 
 // Device dependant defines ADDED BACK IN FROM ORIGINAL ATMEL .H
 
