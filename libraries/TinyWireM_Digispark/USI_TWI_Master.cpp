@@ -2,25 +2,25 @@
 *
 *
 * File              USI_TWI_Master.c compiled with gcc
-* Date              Friday, 10/31/08		Boo!
+* Date              Friday, 10/31/08    Boo!
 * Updated by        jkl
 *
 
 * AppNote           : AVR310 - Using the USI module as a TWI Master
 *
-*		Extensively modified to provide complete I2C driver.
-*	
+*   Extensively modified to provide complete I2C driver.
+* 
 *Notes: 
-*		- T4_TWI and T2_TWI delays are modified to work with 1MHz default clock
-*			and now use hard code values. They would need to change
-*			for other clock rates. Refer to the Apps Note.
+*   - T4_TWI and T2_TWI delays are modified to work with 1MHz default clock
+*     and now use hard code values. They would need to change
+*     for other clock rates. Refer to the Apps Note.
 *
-*	12/17/08	Added USI_TWI_Start_Memory_Read Routine		-jkl
-*		Note msg buffer will have slave adrs ( with write bit set) and memory adrs;
-*			length should be these two bytes plus the number of bytes to read.
+* 12/17/08  Added USI_TWI_Start_Memory_Read Routine   -jkl
+*   Note msg buffer will have slave adrs ( with write bit set) and memory adrs;
+*     length should be these two bytes plus the number of bytes to read.
 ****************************************************************************/
 #include <avr/interrupt.h>
-#define F_CPU 16500000UL	      // Sets up the default speed for delay.h
+//#define F_CPU 16500000UL        // Sets up the default speed for delay.h
 #include <util/delay.h>
 #include <avr/io.h>
 #include "USI_TWI_Master.h"
@@ -37,7 +37,7 @@ union  USI_TWI_state
   {
     unsigned char addressMode         : 1;
     unsigned char masterWriteDataMode : 1;
-	unsigned char memReadMode		  : 1;
+    unsigned char memReadMode         : 1;
     unsigned char unused              : 5;
   }; 
 }   USI_TWI_state;
@@ -82,7 +82,7 @@ unsigned char USI_TWI_Get_State_Info( void )
 ---------------------------------------------------------------*/
 unsigned char USI_TWI_Start_Random_Read( unsigned char *msg, unsigned char msgSize)
 {
-  *(msg) &= ~(TRUE<<TWI_READ_BIT);		// clear the read bit if it's set
+  *(msg) &= ~(TRUE<<TWI_READ_BIT);    // clear the read bit if it's set
   USI_TWI_state.errorState = 0;
   USI_TWI_state.memReadMode = TRUE;
   
@@ -103,10 +103,10 @@ unsigned char USI_TWI_Start_Random_Read( unsigned char *msg, unsigned char msgSi
 unsigned char USI_TWI_Start_Read_Write( unsigned char *msg, unsigned char msgSize)
 {
     
-	USI_TWI_state.errorState = 0;				// Clears all mode bits also
+  USI_TWI_state.errorState = 0;       // Clears all mode bits also
   
-	return (USI_TWI_Start_Transceiver_With_Data( msg, msgSize));
-	
+  return (USI_TWI_Start_Transceiver_With_Data( msg, msgSize));
+  
 }
 /*---------------------------------------------------------------
  USI Transmit and receive function. LSB of first byte in buffer 
@@ -132,14 +132,14 @@ unsigned char USI_TWI_Start_Transceiver_With_Data( unsigned char *msg, unsigned 
   unsigned char const tempUSISR_8bit = (1<<USISIF)|(1<<USIOIF)|(1<<USIPF)|(1<<USIDC)|      // Prepare register value to: Clear flags, and
                                  (0x0<<USICNT0);                                     // set USI to shift 8 bits i.e. count 16 clock edges.
   unsigned char const tempUSISR_1bit = (1<<USISIF)|(1<<USIOIF)|(1<<USIPF)|(1<<USIDC)|      // Prepare register value to: Clear flags, and
-                                 (0xE<<USICNT0); 									// set USI to shift 1 bit i.e. count 2 clock edges.
-	unsigned char *savedMsg;
-	unsigned char savedMsgSize; 
+                                 (0xE<<USICNT0);                  // set USI to shift 1 bit i.e. count 2 clock edges.
+  unsigned char *savedMsg;
+  unsigned char savedMsgSize; 
 
 //This clear must be done before calling this function so that memReadMode can be specified.
-//  USI_TWI_state.errorState = 0;				// Clears all mode bits also
+//  USI_TWI_state.errorState = 0;       // Clears all mode bits also
 
-  USI_TWI_state.addressMode = TRUE;			// Always true for first byte
+  USI_TWI_state.addressMode = TRUE;     // Always true for first byte
 
 #ifdef PARAM_VERIFICATION
   if(msg > (unsigned char*)RAMEND)                 // Test if address is outside SRAM space
@@ -177,15 +177,15 @@ unsigned char USI_TWI_Start_Transceiver_With_Data( unsigned char *msg, unsigned 
     USI_TWI_state.masterWriteDataMode = TRUE;
   }
 
-//	if (USI_TWI_state.memReadMode)
-//	{
-		savedMsg = msg;
-		savedMsgSize = msgSize;
-//	}
+//  if (USI_TWI_state.memReadMode)
+//  {
+    savedMsg = msg;
+    savedMsgSize = msgSize;
+//  }
 
-	if ( !USI_TWI_Master_Start( ))
+  if ( !USI_TWI_Master_Start( ))
   {
-	return (FALSE);                           // Send a START condition on the TWI bus.
+  return (FALSE);                           // Send a START condition on the TWI bus.
   }
 
 /*Write address and Read/Write data */
@@ -209,25 +209,25 @@ unsigned char USI_TWI_Start_Transceiver_With_Data( unsigned char *msg, unsigned 
           USI_TWI_state.errorState = USI_TWI_NO_ACK_ON_DATA;
         return (FALSE);
       }
-	  
-	  if ((!USI_TWI_state.addressMode) && USI_TWI_state.memReadMode)// means memory start address has been written
-	  {
-		msg = savedMsg;					// start at slave address again
-		*(msg) |= (TRUE<<TWI_READ_BIT);  // set the Read Bit on Slave address
-		USI_TWI_state.errorState = 0;
-		USI_TWI_state.addressMode = TRUE;	// Now set up for the Read cycle
-		msgSize = savedMsgSize;				// Set byte count correctly
-		// NOte that the length should be Slave adrs byte + # bytes to read + 1 (gets decremented below)
-		if ( !USI_TWI_Master_Start( ))
-		{
-			USI_TWI_state.errorState = USI_TWI_BAD_MEM_READ;
-			return (FALSE);                           // Send a START condition on the TWI bus.
-		}
-	  }
-	  else
-	  {
-		USI_TWI_state.addressMode = FALSE;            // Only perform address transmission once.
-	  }
+    
+    if ((!USI_TWI_state.addressMode) && USI_TWI_state.memReadMode)// means memory start address has been written
+    {
+    msg = savedMsg;         // start at slave address again
+    *(msg) |= (TRUE<<TWI_READ_BIT);  // set the Read Bit on Slave address
+    USI_TWI_state.errorState = 0;
+    USI_TWI_state.addressMode = TRUE; // Now set up for the Read cycle
+    msgSize = savedMsgSize;       // Set byte count correctly
+    // NOte that the length should be Slave adrs byte + # bytes to read + 1 (gets decremented below)
+    if ( !USI_TWI_Master_Start( ))
+    {
+      USI_TWI_state.errorState = USI_TWI_BAD_MEM_READ;
+      return (FALSE);                           // Send a START condition on the TWI bus.
+    }
+    }
+    else
+    {
+    USI_TWI_state.addressMode = FALSE;            // Only perform address transmission once.
+    }
     }
     /* Else masterRead cycle*/
     else
@@ -251,8 +251,8 @@ unsigned char USI_TWI_Start_Transceiver_With_Data( unsigned char *msg, unsigned 
   
   if (!USI_TWI_Master_Stop())
   {
-	return (FALSE);                           // Send a STOP condition on the TWI bus.
-	}
+  return (FALSE);                           // Send a STOP condition on the TWI bus.
+  }
 
 /* Transmission successfully completed*/
   return (TRUE);
@@ -273,14 +273,14 @@ unsigned char USI_TWI_Master_Transfer( unsigned char temp )
            (1<<USITC);                              // Toggle Clock Port.
   do
   { 
-	_delay_us(T2_TWI);
+  _delay_us(T2_TWI);
     USICR = temp;                          // Generate positve SCL edge.
     while( !(PIN_USI & (1<<PIN_USI_SCL)) );// Wait for SCL to go high.
-	_delay_us(T4_TWI);
+  _delay_us(T4_TWI);
     USICR = temp;                          // Generate negative SCL edge.
   }while( !(USISR & (1<<USIOIF)) );        // Check for transfer complete.
   
-	_delay_us(T2_TWI);
+  _delay_us(T2_TWI);
   temp  = USIDR;                           // Read out data.
   USIDR = 0xFF;                            // Release SDA.
   DDR_USI |= (1<<PIN_USI_SDA);             // Enable SDA as output.
@@ -299,7 +299,7 @@ unsigned char USI_TWI_Master_Start( void )
 
 /* Generate Start Condition */
   PORT_USI &= ~(1<<PIN_USI_SDA);                    // Force SDA LOW.
-	_delay_us(T4_TWI);                         
+  _delay_us(T4_TWI);                         
   PORT_USI &= ~(1<<PIN_USI_SCL);                    // Pull SCL LOW.
   PORT_USI |= (1<<PIN_USI_SDA);                     // Release SDA.
 
@@ -321,9 +321,9 @@ unsigned char USI_TWI_Master_Stop( void )
   PORT_USI &= ~(1<<PIN_USI_SDA);           // Pull SDA low.
   PORT_USI |= (1<<PIN_USI_SCL);            // Release SCL.
   while( !(PIN_USI & (1<<PIN_USI_SCL)) );  // Wait for SCL to go high.  
-	_delay_us(T4_TWI);
+  _delay_us(T4_TWI);
   PORT_USI |= (1<<PIN_USI_SDA);            // Release SDA.
-	_delay_us(T2_TWI);
+  _delay_us(T2_TWI);
   
 #ifdef SIGNAL_VERIFY
   if( !(USISR & (1<<USIPF)) )

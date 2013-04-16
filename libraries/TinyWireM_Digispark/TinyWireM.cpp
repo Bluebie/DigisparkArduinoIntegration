@@ -25,10 +25,10 @@ extern "C" {
 
 
 // Initialize Class Variables //////////////////////////////////////////////////
-	uint8_t USI_TWI::USI_Buf[USI_BUF_SIZE];             // holds I2C send and receive data
-	uint8_t USI_TWI::USI_BufIdx = 0;                    // current number of bytes in the send buff
-	uint8_t USI_TWI::USI_LastRead = 0;                  // number of bytes read so far
-	uint8_t USI_TWI::USI_BytesAvail = 0;                // number of bytes requested but not read
+  uint8_t USI_TWI::USI_Buf[USI_BUF_SIZE];             // holds I2C send and receive data
+  uint8_t USI_TWI::USI_BufIdx = 0;                    // current number of bytes in the send buff
+  uint8_t USI_TWI::USI_LastRead = 0;                  // number of bytes read so far
+  uint8_t USI_TWI::USI_BytesAvail = 0;                // number of bytes requested but not read
 
 // Constructors ////////////////////////////////////////////////////////////////
 
